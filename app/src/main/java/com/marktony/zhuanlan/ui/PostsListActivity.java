@@ -12,6 +12,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -19,11 +21,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.gson.Gson;
 import com.marktony.zhuanlan.R;
+
 import com.marktony.zhuanlan.adapter.PostsAdapter;
 import com.marktony.zhuanlan.app.VolleySingleton;
 import com.marktony.zhuanlan.bean.ZhuanlanListItem;
+import com.marktony.zhuanlan.head.RentalsSunHeaderView;
 import com.marktony.zhuanlan.utils.API;
 import com.marktony.zhuanlan.interfaze.OnRecyclerViewOnClickListener;
+import com.marktony.zhuanlan.utils.LocalDisplay;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,11 +37,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import in.srain.cube.views.ptr.PtrFrameLayout;
+import in.srain.cube.views.ptr.PtrHandler;
+
 public class PostsListActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private RecyclerView recyclerView;
-    private SwipeRefreshLayout refreshLayout;
+
 
     private List<ZhuanlanListItem> list = new ArrayList<ZhuanlanListItem>();
     private PostsAdapter adapter;
@@ -50,15 +58,10 @@ public class PostsListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_posts_list);
-
+        recyclerView= (RecyclerView)findViewById(R.id.rv_post);
         initViews();
 
-        refreshLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                refreshLayout.setRefreshing(true);
-            }
-        });
+
 
         Intent intent = getIntent();
         slug = intent.getStringExtra("slug");
@@ -144,14 +147,6 @@ public class PostsListActivity extends AppCompatActivity {
                         }
                     });
 
-                    refreshLayout.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            refreshLayout.setRefreshing(false);
-                        }
-                    });
-
-                    refreshLayout.setEnabled(false);
 
                 } else {
                     adapter.notifyItemInserted(list.size());
@@ -161,12 +156,7 @@ public class PostsListActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                refreshLayout.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        refreshLayout.setRefreshing(false);
-                    }
-                });
+
             }
         });
 
@@ -190,20 +180,83 @@ public class PostsListActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        refreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresh);
-
-        recyclerView = (RecyclerView) findViewById(R.id.rv_posts);
         LinearLayoutManager manager = new LinearLayoutManager(PostsListActivity.this);
         recyclerView.setLayoutManager(manager);
+        final PtrFrameLayout frame = (PtrFrameLayout) findViewById(R.id.refresh);
+        recyclerView.setLayoutManager(new LinearLayoutManager(PostsListActivity.this));
+        final RentalsSunHeaderView header = new RentalsSunHeaderView(this);
+        header.setLayoutParams(new PtrFrameLayout.LayoutParams(-1, -2));
+        header.setPadding(0, LocalDisplay.dp2px(15), 0, LocalDisplay.dp2px(10));
+        header.setUp(frame);
 
-        //设置下拉刷新的按钮的颜色
-        refreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
-        //设置手指在屏幕上下拉多少距离开始刷新
-        refreshLayout.setDistanceToTriggerSync(300);
-        //设置下拉刷新按钮的背景颜色
-        refreshLayout.setProgressBackgroundColorSchemeColor(Color.WHITE);
-        //设置下拉刷新按钮的大小
-        refreshLayout.setSize(SwipeRefreshLayout.DEFAULT);
+        frame.setLoadingMinTime(1000);
+        frame.setDurationToCloseHeader(1500);
+        frame.setHeaderView(header);
+        frame.addPtrUIHandler(header);
+        // frame.setPullToRefresh(true);
+        frame.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                frame.autoRefresh(true);
+            }
+        }, 500);
+        frame.setPtrHandler(new PtrHandler() {
+            @Override
+            public boolean checkCanDoRefresh(PtrFrameLayout frame, View content, View header) {
+                /**
+                 * 如果 Content 不是 ViewGroup，返回 true,表示可以下拉</br>
+                 * 例如：TextView，ImageView
+                 */
+                if (!(content instanceof ViewGroup)) {
+                    return true;
+                }
+                ViewGroup viewGroup = (ViewGroup) content;
+                /**
+                 * 如果 Content 没有子 View（内容为空）时候，返回 true，表示可以下拉
+                 */
+                if (viewGroup.getChildCount() == 0) {
+                    return true;
+                }
+                /**
+                 * 如果 Content 是 AbsListView（ListView，GridView），当第一个 item 不可见是，返回 false，不可以下拉。
+                 */
+                if (viewGroup instanceof AbsListView) {
+                    AbsListView listView = (AbsListView) viewGroup;
+                    if (listView.getFirstVisiblePosition() > 0) {
+                        return false;
+                    }
+                }
+                /**
+                 * 最终判断，判断第一个子 View 的 top 值</br>
+                 * 如果第一个子 View 有 margin，则当 top==子 view 的 marginTop+content 的 paddingTop 时，表示在最顶部，返回 true，可以下拉</br>
+                 * 如果没有 margin，则当 top==content 的 paddinTop 时，表示在最顶部，返回 true，可以下拉
+                 */
+                View child = viewGroup.getChildAt(0);
+                ViewGroup.LayoutParams glp = child.getLayoutParams();
+                int top = child.getTop();
+                if (glp instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) glp;
+                    return top == mlp.topMargin + viewGroup.getPaddingTop();
+                } else {
+                    return top == viewGroup.getPaddingTop();
+                }
+
+            }
+
+            @Override
+            public void onRefreshBegin(final PtrFrameLayout frame) {
+                long delay = 1500;
+                frame.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        frame.refreshComplete();
+                    }
+                }, delay);
+
+            }
+        });
+
+
     }
 
     @Override
@@ -214,7 +267,7 @@ public class PostsListActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        refreshLayout.setRefreshing(false);
+
     }
 
 }

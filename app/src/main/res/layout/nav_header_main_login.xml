@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    android:background="@color/colorPrimary"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_marginTop="26dp"
+        android:layout_width="match_parent"
+        android:gravity="center"
+
+        android:layout_height="wrap_content">
+        <com.marktony.zhuanlan.view.CircleImageView
+            android:src="@drawable/nav_head"
+            android:id="@+id/civ_login"
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/login"
+            android:background="@drawable/bt_sharp"
+            android:stateListAnimator="@drawable/state_list_animator__z"
+            android:layout_width="100dp"
+            android:layout_height="30dp"
+            android:text="@string/denglu"
+            android:textColor="#d3d3d3"
+            >
+        </Button>
+    </LinearLayout>
+
+
+</LinearLayout>

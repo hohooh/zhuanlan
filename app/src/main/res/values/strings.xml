@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">知乎专栏</string>
+    <string name="app_name">知了</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -11,6 +11,8 @@
     <string name="cancel">取消</string>
     <string name="got_it">知道了</string>
     <string name="loading">加载中</string>
+
+    <string name="denglu">登录·注册</string>
 
 
     <!--navigation drawer-->
@@ -41,9 +43,7 @@
     <string name="title_activity_about">关于</string>
     <string name="donate">捐赠</string>
     <string name="donate_content">支付宝账号将会复制到粘贴板，进入支付宝可直接粘贴完成捐赠，感谢您的支持！</string>
-    <string name="copyright_content">本App所使用的所有API均由 知乎(Zhihu.Inc) 提供，Github用户黎赵太郎(marktony)采取非正常手段获取。获取与共享之行为或有侵犯知乎权益的嫌疑。若被告知需停止共享与使用，黎赵太郎会及时删除页面与整个项目。请您暸解相关情况，并遵守知乎协议。</string>
-    <string name="github_url">https://github.com/marktony</string>
-    <string name="zhihu_url">https://www.zhihu.com/people/kirin-momo</string>
+    <string name="copyright_content">本App所使用的所有API均由 知乎提供,请您暸解相关情况，仅供学习使用，并遵守知乎协议。</string>
     <string name="no_mail_app">没有安装邮件类App</string>
     <string name="sdk_version">SDK版本:</string>
     <string name="device_model">设备型号:</string>
@@ -51,12 +51,12 @@
     <string name="mail_account">mailto:marktonymengyi@gmail.com</string>
     <string name="no_market_app">没有安装市场类App</string>
     <string name="donate_account">marktonymengyi@gmail.com</string>
-    <string name="version">版本:V1.4</string>
+    <string name="version">版本:V1.0</string>
     <string name="rate">为知乎专栏App评分</string>
     <string name="rate_description">如果你喜欢知乎专栏App,那么请在商店中为它评分吧</string>
     <string name="author">作者</string>
-    <string name="author_name">黎赵太郎</string>
-    <string name="author_description">湖南,长沙</string>
+    <string name="author_name">6202</string>
+    <string name="author_description">湖北,黄冈</string>
     <string name="follow_on_github">在GitHub关注我</string>
     <string name="follow_on_zhihu">在知乎关注我</string>
     <string name="icon_author">ToddThink</string>

@@ -28,7 +28,7 @@
         <item name="android:textSize">21sp</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textStyle">normal</item>
-    </style>
+    </style>;
 
     <style name="ExpandedAppBarPlus1" parent="@android:style/TextAppearance.Medium">
         <item name="android:textSize">21sp</item>

@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -21,10 +22,16 @@ import com.marktony.zhuanlan.R;
 import com.marktony.zhuanlan.adapter.ZhuanlanAdapter;
 import com.marktony.zhuanlan.app.VolleySingleton;
 import com.marktony.zhuanlan.bean.Zhuanlan;
+import com.marktony.zhuanlan.head.RentalsSunHeaderView;
 import com.marktony.zhuanlan.interfaze.OnRecyclerViewOnClickListener;
 import com.marktony.zhuanlan.utils.API;
+import com.marktony.zhuanlan.utils.LocalDisplay;
 
 import java.util.ArrayList;
+
+import in.srain.cube.views.ptr.PtrClassicFrameLayout;
+import in.srain.cube.views.ptr.PtrFrameLayout;
+import in.srain.cube.views.ptr.PtrHandler;
 
 /**
  * Created by Lizhaotailang on 2016/10/3.
@@ -34,7 +41,6 @@ public class GlobalFragment extends Fragment {
 
     private int type;
     private RecyclerView recyclerView;
-    private SwipeRefreshLayout refreshLayout;
     private String[] ids;
     private ZhuanlanAdapter adapter;
     private ArrayList<Zhuanlan> list = new ArrayList<>();
@@ -73,15 +79,15 @@ public class GlobalFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_universal,container,false);
-
+     recyclerView= (RecyclerView) view.findViewById(R.id.rv_main);
         initViews(view);
 
-        refreshLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                refreshLayout.setRefreshing(true);
-            }
-        });
+//        refreshLayout.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                refreshLayout.setRefreshing(true);
+//            }
+//        });
 
         switch (type){
             default:
@@ -133,17 +139,17 @@ public class GlobalFragment extends Fragment {
                         adapter.notifyItemInserted(list.size() - 1);
                     }
 
-                    if (finalI == (ids.length - 1)){
-
-                        refreshLayout.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                refreshLayout.setRefreshing(false);
-                            }
-                        });
-
-                        refreshLayout.setEnabled(false);
-                    }
+//                    if (finalI == (ids.length - 1)){
+//
+//                        refreshLayout.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                refreshLayout.setRefreshing(false);
+//                            }
+//                        });
+//
+//                        refreshLayout.setEnabled(false);
+//                    }
 
                 }
             }, new Response.ErrorListener() {
@@ -162,18 +168,79 @@ public class GlobalFragment extends Fragment {
 
     private void initViews(View view) {
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.rv_main);
+        final PtrFrameLayout frame = (PtrFrameLayout) view.findViewById(R.id.refresh);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        refreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh);
+        final RentalsSunHeaderView header = new RentalsSunHeaderView(getContext());
+        header.setLayoutParams(new PtrFrameLayout.LayoutParams(-1, -2));
+        header.setPadding(0, LocalDisplay.dp2px(15), 0, LocalDisplay.dp2px(10));
+        header.setUp(frame);
 
-        //设置下拉刷新的按钮的颜色
-        refreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
-        //设置手指在屏幕上下拉多少距离开始刷新
-        refreshLayout.setDistanceToTriggerSync(300);
-        //设置下拉刷新按钮的背景颜色
-        refreshLayout.setProgressBackgroundColorSchemeColor(Color.WHITE);
-        //设置下拉刷新按钮的大小
-        refreshLayout.setSize(SwipeRefreshLayout.DEFAULT);
+        frame.setLoadingMinTime(1000);
+        frame.setDurationToCloseHeader(1500);
+        frame.setHeaderView(header);
+        frame.addPtrUIHandler(header);
+        // frame.setPullToRefresh(true);
+        frame.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                frame.autoRefresh(true);
+            }
+        }, 500);
+        frame.setPtrHandler(new PtrHandler() {
+            @Override
+            public boolean checkCanDoRefresh(PtrFrameLayout frame, View content, View header) {
+                /**
+                 * 如果 Content 不是 ViewGroup，返回 true,表示可以下拉</br>
+                 * 例如：TextView，ImageView
+                 */
+                if (!(content instanceof ViewGroup)) {
+                    return true;
+                }
+                ViewGroup viewGroup = (ViewGroup) content;
+                /**
+                 * 如果 Content 没有子 View（内容为空）时候，返回 true，表示可以下拉
+                 */
+                if (viewGroup.getChildCount() == 0) {
+                    return true;
+                }
+                /**
+                 * 如果 Content 是 AbsListView（ListView，GridView），当第一个 item 不可见是，返回 false，不可以下拉。
+                 */
+                if (viewGroup instanceof AbsListView) {
+                    AbsListView listView = (AbsListView) viewGroup;
+                    if (listView.getFirstVisiblePosition() > 0) {
+                        return false;
+                    }
+                }
+                /**
+                 * 最终判断，判断第一个子 View 的 top 值</br>
+                 * 如果第一个子 View 有 margin，则当 top==子 view 的 marginTop+content 的 paddingTop 时，表示在最顶部，返回 true，可以下拉</br>
+                 * 如果没有 margin，则当 top==content 的 paddinTop 时，表示在最顶部，返回 true，可以下拉
+                 */
+                View child = viewGroup.getChildAt(0);
+                ViewGroup.LayoutParams glp = child.getLayoutParams();
+                int top = child.getTop();
+                if (glp instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) glp;
+                    return top == mlp.topMargin + viewGroup.getPaddingTop();
+                } else {
+                    return top == viewGroup.getPaddingTop();
+                }
+
+            }
+
+            @Override
+            public void onRefreshBegin(final PtrFrameLayout frame) {
+                long delay = 1500;
+                frame.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        frame.refreshComplete();
+                    }
+                }, delay);
+
+            }
+        });
 
     }
 

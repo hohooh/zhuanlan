@@ -101,30 +101,21 @@ public class AboutActivity extends AppCompatActivity {
         tvGitHub.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = getString(R.string.github_url);
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                startActivity(intent);
+
             }
         });
 
         tvZhihu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = getString(R.string.zhihu_url);
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                startActivity(intent);
+
             }
         });
 
         layoutIconAuthor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = getString(R.string.icon_author_url);
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                startActivity(intent);
+
             }
         });
 
